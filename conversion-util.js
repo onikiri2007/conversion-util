@@ -17,6 +17,10 @@ const getEmptyArray = () => Array(48).fill(0);
 
 const MIDNIGHT_STRING = '24:00';
 
+const convertTimeDecimalToIndex = (timeInDecimal: number): number => {
+  return timeInDecimal * 60 / 30;
+};
+
 export default {
   /**
   * @desc Used to display the time on the UI.
@@ -62,6 +66,52 @@ export default {
     let intervalArray = getEmptyArray();
     if (isEmptyOrNullArray(timeStringArray)) return intervalArray;
     if (!isDivisibleBy(timeStringArray.length, 4)) return intervalArray;
+
+    const decimalTimes = timeStringArray.map((val) => {
+        return this.timeStringToDecimal(val).toFixed(2);
+    });
+    let prev, current, prevIndex, currentIndex, startIndex, endIndex, isUp;
+    decimalTimes.forEach((val, index) => {
+      currentIndex = convertTimeDecimalToIndex(val);
+       if(index === 0) {
+          current = 1
+          isUp = true;
+       }
+       else {
+
+        if(prev === 1 && isUp) {
+           current = prev + 1;
+           isUp = true;
+        }
+        else if(prev === 1 && !isUp) {
+          current = 0;
+          isUp = false;
+        }
+        else if(prev === 2) {
+          current = prev - 1;
+          isUp = false;
+        }
+        else if(prev === 0) {
+          current = prev + 1;
+          isUp = true;
+        }
+        else {
+          current = 0;
+        }
+        startIndex = prevIndex;
+        endIndex = currentIndex;
+        if(startIndex > intervalArray.length) {
+         startIndex = intervalArray.length - 1;
+        }
+        if(endIndex > intervalArray.length) {
+          endIndex = intervalArray.length - 1;
+        }
+        intervalArray = intervalArray.fill(prev, startIndex, endIndex);
+      }
+       intervalArray[currentIndex] = current;
+       prev = current;
+       prevIndex = currentIndex;
+    });
     return intervalArray;
   },
   /**
